@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>py-typedlogic: Bridging Formal Logic and Typed Python</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .tagline {
+            text-align: center;
+            font-size: 1.2em;
+            color: #34495e;
+            margin-bottom: 40px;
+        }
+        .features {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .feature {
+            flex-basis: 30%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .feature h3 {
+            color: #3498db;
+        }
+        .code-tabs {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #3498db;
+        }
+        .tab-button {
+            background-color: #f8f8f8;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: 0.3s;
+            font-size: 17px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .tab-button:hover {
+            background-color: #ddd;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .code-sample {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #f8f8f8;
+        }
+        .code-sample.active {
+            display: block;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .cta {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>py-typedlogic</h1>
+        <p class="tagline">Bridging Logic and Python</p>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>Python Syntax</h3>
+                <p>Write logical axioms using <a href="https://py-typedlogic.github.io/py-typedlogic/tutorial/01-first-program/">familiar Python constructs</a></p>
+            </div>
+            <div class="feature">
+                <h3>Strong Typing</h3>
+                <p>Benefit from mypy validation and catch errors early</p>
+            </div>
+            <div class="feature">
+              <h3>Integrations</h3>
+              <p>Integration
+              with <a href="https://py-typedlogic.github.io/py-typedlogic/integrations/solvers/souffle/">datalog
+              engines</a>, <a href="https://py-typedlogic.github.io/py-typedlogic/integrations/solvers/clingo/">answer-set
+              programming</a>, <a href="https://py-typedlogic.github.io/py-typedlogic/integrations/solvers/z3/">theorem
+              provers</a>, and <a href="https://py-typedlogic.github.io/py-typedlogic/integrations/frameworks/owldl/owldl-tutorial/">OWL-DL</a></p>
+            </div>
+        </div>
+
+        <h2>See py-typedlogic in Action</h2>
+        <div class="code-tabs">
+            <div class="tab-buttons">
+                <button class="tab-button active"
+                onclick="openTab(event, 'python-logic')">Python Theory</button>
+                <button class="tab-button" onclick="openTab(event, 'execution')">Reasoning</button>
+                <button class="tab-button" onclick="openTab(event, 'output')">Output</button>
+                <button class="tab-button" onclick="openTab(event, 'axioms')">Axioms</button>
+            </div>
+
+            <div id="python-logic" class="code-sample active">
+                <pre><code>from pydantic import BaseModel
+from typedlogic import FactMixin, Term
+from typedlogic.decorators import axiom
+
+ID = str
+
+class Link(BaseModel, FactMixin):
+    """A link between two entities"""
+    source: ID
+    target: ID
+
+class Path(BaseModel, FactMixin):
+    """An N-hop path between two entities"""
+    source: ID
+    target: ID
+    hops: int
+
+@axiom
+def path_from_link(x: ID, y: ID):
+    """If there is a link from x to y, there is a path from x to y"""
+    assert Link(source=x, target=y) >> Path(source=x, target=y, hops=1)
+
+@axiom
+def transitivity(x: ID, y: ID, z: ID, d1: int, d2: int):
+    """Transitivity of paths, plus hop counting"""
+    assert ((Path(source=x, target=y, hops=d1) & Path(source=y, target=z, hops=d2)) >>
+            Path(source=x, target=z, hops=d1+d2))</code></pre>
+            </div>
+
+            <div id="execution" class="code-sample">
+                <pre><code>from typedlogic.integrations.souffle_solver import SouffleSolver
+from links import Link
+import links as links
+
+solver = SouffleSolver()
+solver.load(links)  ## source for definitions and axioms
+# Add data
+links = [Link(source='CA', target='OR'), Link(source='OR', target='WA')]
+for link in links:
+    solver.add(link)
+model = solver.model()
+for fact in model.iter_retrieve("Path"):
+    print(fact)</code></pre>
+            </div>
+
+            <div id="output" class="code-sample">
+                <pre><code>Path(source='CA', target='OR', hops=1)
+Path(source='OR', target='WA', hops=1)
+Path(source='CA', target='WA', hops=2)</code></pre>
+            </div>
+
+            <div id="axioms" class="code-sample">
+                <pre><code>∀[x:ID y:ID]. Link(x, y) → Path(x, y, 1)
+∀[x:ID y:ID z:ID d1:int d2:int]. Path(x, y, d1) ∧ Path(y, z, d2) → Path(x, z, d1+d2)
+</code></pre>
+            </div>
+        </div>
+
+        <div class="cta">
+            <a href="https://py-typedlogic.github.io/py-typedlogic/" class="button">Get Started with py-typedlogic</a>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, codeSamples, tabButtons;
+            codeSamples = document.getElementsByClassName("code-sample");
+            for (i = 0; i < codeSamples.length; i++) {
+                codeSamples[i].className = codeSamples[i].className.replace(" active", "");
+            }
+            tabButtons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).className += " active";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>
